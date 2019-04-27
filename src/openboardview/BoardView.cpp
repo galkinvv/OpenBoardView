@@ -9,6 +9,7 @@
 #include <iostream>
 #include <limits.h>
 #include <memory>
+#include <algorithm>
 #include <stdio.h>
 #ifdef ENABLE_SDL2
 #include <SDL.h>
@@ -1690,13 +1691,42 @@ void BoardView::SearchComponent(void) {
 		ImGui::Text("ENTER: Search, ESC: Exit, TAB: next field");
 
 		ImGui::Separator();
-		ImGui::Checkbox("Components", &m_searchComponents);
+
+		{
+			//Configure searcher.part_fields_to_look and m_searchComponents by checkboxes
+			auto& part_search_by = searcher.part_fields_to_look;
+			auto by_name_it = std::find(part_search_by.begin(), part_search_by.end(), &Component::name);
+			bool by_name = by_name_it != part_search_by.end();
+			if (by_name)
+			{
+				part_search_by.erase(by_name_it);
+			}
+			auto by_part_number_it = std::find(part_search_by.begin(), part_search_by.end(), &Component::mfgcode);
+			bool by_part_number = by_part_number_it != part_search_by.end();
+			if (by_part_number)
+			{
+				part_search_by.erase(by_part_number_it);
+			}
+
+			ImGui::Checkbox("Components name", &by_name);
+			ImGui::SameLine();
+			ImGui::Checkbox("Components part number", &by_part_number);
+
+			if (by_name)
+			{
+				part_search_by.push_back(&Component::name);
+			}
+			if (by_part_number)
+			{
+				part_search_by.push_back(&Component::mfgcode);
+			}
+			m_searchComponents = by_part_number || by_name;
+		}
 
 		ImGui::SameLine();
 		ImGui::Checkbox("Nets", &m_searchNets);
 
 		{
-			ImGui::SameLine();
 			ImGui::Text(" Search mode: ");
 			ImGui::SameLine();
 			if (ImGui::RadioButton("Substring", searcher.isMode(SearchMode::Sub))) {
