@@ -74,6 +74,7 @@ set(SOURCES
 	FileFormats/CADFile.cpp
 	FileFormats/CSTFile.cpp
 	FileFormats/FZFile.cpp
+	FileFormats/GenCADFile.cpp
 	NetList.cpp
 	PartList.cpp
 	Renderers/Renderers.cpp
@@ -88,6 +89,7 @@ set(SOURCES
 	GUI/Image.cpp
 	GUI/Preferences/BackgroundImage.cpp
 	GUI/Preferences/Keyboard.cpp
+	../mpc/mpc.c
 	main_opengl.cpp
 )
 
