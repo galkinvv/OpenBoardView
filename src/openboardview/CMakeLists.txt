@@ -44,11 +44,16 @@ include_directories(
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}/..
 	${IMGUI_INCLUDE_DIRS}
+	${SDL2_INCLUDE_DIRS}
 	${GLAD_INCLUDE_DIRS}
 	${GTK_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	${ZLIB_INCLUDE_DIRS}
 	${FONTCONFIG_INCLUDE_DIRS}
+)
+
+link_directories(
+	${SDL2_LIBRARY_DIRS}
 )
 
 
@@ -139,23 +144,20 @@ target_link_libraries(${PROJECT_NAME_LOWER}
 	${CMAKE_DL_LIBS}
 )
 
-if(NOT APPLE AND NOT MINGW)
+if(MINGW) # Link statically with SDL2 for Windows
 	target_link_libraries(${PROJECT_NAME_LOWER}
-		${FONTCONFIG_LIBRARIES}
+		${SDL2_STATIC_LIBRARIES}
+	)
+else()
+	if(NOT APPLE)
+		target_link_libraries(${PROJECT_NAME_LOWER}
+			${FONTCONFIG_LIBRARIES}
+		)
+	endif()
+	target_link_libraries(${PROJECT_NAME_LOWER}
+		${SDL2_LIBRARIES}
 	)
 endif()
-if(MINGW)
-target_link_libraries(${PROJECT_NAME_LOWER}
-	SDL2::SDL2-static
-)
-else()
-target_link_libraries(${PROJECT_NAME_LOWER}
-	SDL2::SDL2
-)
-endif()
-target_link_libraries(${PROJECT_NAME_LOWER}
-	SDL2::SDL2main
-)
 
 install(TARGETS
 	${PROJECT_NAME_LOWER}

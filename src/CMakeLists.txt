@@ -55,7 +55,21 @@ set(GLAD_NO_LOADER ON CACHE BOOL "Disable loader" FORCE) # We're using SDL2 load
 add_subdirectory(glad)
 
 ## SDL2 ##
-find_package(SDL2 REQUIRED CONFIG)
+if(APPLE)
+	find_package(SDL2 REQUIRED)
+	set(SDL2_INCLUDE_DIRS "${SDL2_INCLUDE_DIR}")
+	set(SDL2_LIBRARIES "${SDL2_LIBRARY}")
+elseif(WIN32 AND NOT MINGW)
+	set(SDL2_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/SDL2/include")
+	set(SDL2_LIBRARIES "SDL2main" "SDL2")
+	if(CMAKE_CL_64)
+		set(SDL2_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/SDL2/lib/x64")
+	else()
+		set(SDL2_LIBRARY_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/SDL2/lib/x86")
+	endif()
+else()
+	pkg_check_modules(SDL2 REQUIRED sdl2)
+endif()
 add_definitions(-DENABLE_SDL2)
 
 ## imgui ##
@@ -81,6 +95,7 @@ file(WRITE "${CMAKE_CURRENT_SOURCE_DIR}/imgui/backends/imgui_impl_opengl2.cpp" "
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/imgui
 	${GLAD_INCLUDE_DIRS}
+	${SDL2_INCLUDE_DIRS}
 )
 
 set(SOURCES
@@ -105,16 +120,16 @@ endif()
 
 add_library(imgui STATIC ${SOURCES})
 target_link_libraries(imgui
-	${GLAD_LIBRARIES}
+        ${GLAD_LIBRARIES}
 )
-if(MINGW)
-target_link_libraries(imgui
-	SDL2::SDL2-static
-)
+if(MINGW) # Link statically with SDL2 for Windows
+	target_link_libraries(imgui
+		${SDL2_STATIC_LIBRARIES}
+	)
 else()
-target_link_libraries(imgui
-	SDL2::SDL2
-)
+	target_link_libraries(imgui
+		${SDL2_LIBRARIES}
+	)
 endif()
 
 set(IMGUI_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/imgui ${CMAKE_CURRENT_SOURCE_DIR}/imgui/examples)

@@ -4,7 +4,11 @@
 #include <string>
 
 // SDL, glad
+#ifdef _MSC_VER
 #include <SDL.h>
+#else
+#include <SDL2/SDL.h>
+#endif
 #include <glad/glad.h>
 
 #include "imgui/imgui.h"
