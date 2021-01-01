@@ -424,7 +424,7 @@ int BoardView::LoadFile(const filesystem::path &filepath) {
 		SetLastFileOpenName(filepath.string());
 		std::vector<char> buffer = file_as_buffer(filepath);
 		if (!buffer.empty()) {
-			BRDFile *file = nullptr;
+			BRDFileBase *file = nullptr;
 			if (check_fileext(filename, ".cad")) {
 				file = new GenCADFile(buffer);
 			} else if (check_fileext(filepath, ".fz")) { // Since it is encrypted we cannot use the below logic. Trust the ext.
@@ -474,11 +474,11 @@ int BoardView::LoadFile(const filesystem::path &filepath) {
 				CenterView();
 				m_lastFileOpenWasInvalid = false;
 				m_validBoard             = true;
+			} else {
+				m_lastFileLoadError = file->error_string;
+				m_validBoard = false;
+				delete file;
 			}
-		} else {
-			m_lastFileLoadError = file->error_string;
-			m_validBoard = false;
-			delete file;
 		}
 	} else {
 		return 1;

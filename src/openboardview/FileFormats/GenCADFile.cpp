@@ -409,33 +409,54 @@ bool GenCADFile::parse_dimension_units(mpc_ast_t *header_ast)
 
 bool GenCADFile::parse_board_outline(mpc_ast_t *board_ast)
 {
-	for(int i = 0; i >= 0;) {
-		i = mpc_ast_get_index_lb(board_ast, "line|>", i);
-		if (i >= 0) {
-			mpc_ast_t *line = mpc_ast_get_child_lb(board_ast, "line|>", i);
-			if (!line)
-				continue;
-			mpc_ast_t *lref = mpc_ast_get_child(line, "line_ref|>");
-			if (!lref)
-				continue;
-			mpc_ast_t *p1_ast = mpc_ast_get_child(lref, "line_start|x_y_ref|>");
-			mpc_ast_t *p2_ast = mpc_ast_get_child(lref, "line_end|x_y_ref|>");
-			if (!p1_ast || !p2_ast)
-				continue;
+	for (int i = 0; i<board_ast->children_num; i++) {
+		if (strcmp(board_ast->children[i]->tag, "line|>") == 0) {
+			mpc_ast_t *line = board_ast->children[i];
+			if (line) {
+				mpc_ast_t *lref = mpc_ast_get_child(line, "line_ref|>");
+				if (!lref)
+					continue;
+				mpc_ast_t *p1_ast = mpc_ast_get_child(lref, "line_start|x_y_ref|>");
+				mpc_ast_t *p2_ast = mpc_ast_get_child(lref, "line_end|x_y_ref|>");
+				if (!p1_ast || !p2_ast)
+					continue;
 
-			BRDPoint p1{}, p2{};
-			if (x_y_ref_to_brd_point(p1_ast, &p1)) {
-				format.push_back(p1);
-				num_format++;
-			}
+				BRDPoint p1{}, p2{};
+				if (x_y_ref_to_brd_point(p1_ast, &p1)) {
+					format.push_back(p1);
+					num_format++;
+				}
 
-			if (x_y_ref_to_brd_point(p2_ast, &p2)) {
-				format.push_back(p2);
-				num_format++;
+				if (x_y_ref_to_brd_point(p2_ast, &p2)) {
+					format.push_back(p2);
+					num_format++;
+				}
 			}
-			i++;
+		} else if (strcmp(board_ast->children[i]->tag, "arc|>") == 0) {
+			mpc_ast_t *arc = board_ast->children[i];
+			if (arc) {
+				mpc_ast_t *lref = mpc_ast_get_child(arc, "arc_ref|>");
+				if (!lref)
+					continue;
+				mpc_ast_t *p1_ast = mpc_ast_get_child(lref, "arc_start|x_y_ref|>");
+				mpc_ast_t *p2_ast = mpc_ast_get_child(lref, "arc_end|x_y_ref|>");
+				if (!p1_ast || !p2_ast)
+					continue;
+
+				BRDPoint p1{}, p2{};
+				if (x_y_ref_to_brd_point(p1_ast, &p1)) {
+					format.push_back(p1);
+					num_format++;
+				}
+
+				if (x_y_ref_to_brd_point(p2_ast, &p2)) {
+					format.push_back(p2);
+					num_format++;
+				}
+			}
 		}
 	}
+
 
 	for(int i = 0; i >= 0;) {
 		i = mpc_ast_get_index_lb(board_ast, "rectangle|>", i);
