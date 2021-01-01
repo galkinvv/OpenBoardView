@@ -610,7 +610,7 @@ int GenCADFile::board_unit_to_brd_coordinate(double brdUnit)
 		case GenCADFile::MM100:
 			return static_cast<int>(brdUnit * (1.0/2.54));
 		case GenCADFile::USER:
-			return static_cast<int>(m_dimension_unit * brdUnit * 1000.0);
+			return static_cast<int>(m_dimension_unit * brdUnit);
 		case GenCADFile::USERCM:
 			return static_cast<int>(m_dimension_unit * brdUnit * (10.0/2.54));
 		case GenCADFile::USERMM:
