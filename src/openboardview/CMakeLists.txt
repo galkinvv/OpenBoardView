@@ -85,6 +85,7 @@ set(SOURCES
 	GUI/Preferences/BackgroundImage.cpp
 	GUI/Preferences/Keyboard.cpp
 	../mpc/mpc.c
+        ../mpc/mpc.h
 	main_opengl.cpp
 )
 

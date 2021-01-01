@@ -425,7 +425,7 @@ int BoardView::LoadFile(const std::string &filename) {
 		SetLastFileOpenName(filename);
 		std::vector<char> buffer = file_as_buffer(filename);
 		if (!buffer.empty()) {
-			BRDFile *file = nullptr;
+			BRDFileBase *file = nullptr;
 			if (check_fileext(filename, ".cad")) {
 				file = new GenCADFile(filename.c_str());
 			} else {
@@ -475,11 +475,11 @@ int BoardView::LoadFile(const std::string &filename) {
 				CenterView();
 				m_lastFileOpenWasInvalid = false;
 				m_validBoard             = true;
+			} else {
+				m_lastFileLoadError = file->error_string;
+				m_validBoard = false;
+				delete file;
 			}
-		} else {
-			m_lastFileLoadError = file->error_string;
-			m_validBoard = false;
-			delete file;
 		}
 	} else {
 		return 1;
