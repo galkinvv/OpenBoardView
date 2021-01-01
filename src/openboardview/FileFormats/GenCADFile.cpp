@@ -360,6 +360,11 @@ char *GenCADFile::get_signal_name_for_component_pin(const char *component_name, 
 	return nullptr;
 }
 
+double GenCADFile::distance(BRDPoint &p1, BRDPoint &p2)
+{
+	return sqrt(pow(p1.x - p2.x, 2) + pow(p1.y - p2.y, 2));
+}
+
 bool GenCADFile::parse_dimension_units(mpc_ast_t *header_ast)
 {
 	mpc_ast_t *units = mpc_ast_get_child(header_ast, "units|>");
@@ -435,24 +440,16 @@ bool GenCADFile::parse_board_outline(mpc_ast_t *board_ast)
 		} else if (strcmp(board_ast->children[i]->tag, "arc|>") == 0) {
 			mpc_ast_t *arc = board_ast->children[i];
 			if (arc) {
-				mpc_ast_t *lref = mpc_ast_get_child(arc, "arc_ref|>");
-				if (!lref)
+				mpc_ast_t *aref = mpc_ast_get_child(arc, "arc_ref|>");
+				if (!aref)
 					continue;
-				mpc_ast_t *p1_ast = mpc_ast_get_child(lref, "arc_start|x_y_ref|>");
-				mpc_ast_t *p2_ast = mpc_ast_get_child(lref, "arc_end|x_y_ref|>");
-				if (!p1_ast || !p2_ast)
+				mpc_ast_t *start = mpc_ast_get_child(aref, "arc_start|x_y_ref|>");
+				mpc_ast_t *stop = mpc_ast_get_child(aref, "arc_end|x_y_ref|>");
+				mpc_ast_t *center = mpc_ast_get_child(aref, "arc_center|x_y_ref|>");
+				// TODO add support for ellipse arcs (which have arc_p1 and arc_p2)
+				if (!start || !stop || !center)
 					continue;
-
-				BRDPoint p1{}, p2{};
-				if (x_y_ref_to_brd_point(p1_ast, &p1)) {
-					format.push_back(p1);
-					num_format++;
-				}
-
-				if (x_y_ref_to_brd_point(p2_ast, &p2)) {
-					format.push_back(p2);
-					num_format++;
-				}
+				add_arc_to_outline(start, stop, center);
 			}
 		}
 	}
@@ -491,6 +488,58 @@ bool GenCADFile::parse_board_outline(mpc_ast_t *board_ast)
 		}
 	}
 	return true;
+}
+
+void GenCADFile::add_arc_to_outline(mpc_ast_t *start, mpc_ast_t *stop, mpc_ast_t *center)
+{
+	BRDPoint p1{}, p2{}, pc{};
+	if (!x_y_ref_to_brd_point(start, &p1))
+		return;
+
+	if (!x_y_ref_to_brd_point(stop, &p2))
+		return;
+
+	if (!x_y_ref_to_brd_point(center, &pc))
+		return;
+
+	double r = distance(p1, pc);
+	double delta = distance(p1, p2);
+
+	double startAngle = asin((p1.y - pc.y) / r);
+	if (p1.y == pc.y && p1.x < pc.x)
+		startAngle = M_PI;
+
+	double endAngle = startAngle + (asin((delta/2.0) / r) * 2);
+
+	bool inverseOrder = false;
+	if (format.size()) {
+		double p1toLast = distance(p1, format.back());
+		double p2toLast = distance(p2, format.back());
+		if (p2toLast < p1toLast)
+			inverseOrder = true;
+	}
+
+	if (!inverseOrder) {
+		for (double i = startAngle; i<endAngle; i += arc_slice_angle_rad) {
+			BRDPoint p {};
+			p.x = pc.x + r * cos(i);
+			p.y = pc.y + r * sin(i);
+			format.push_back(p);
+			num_format ++;
+		}
+		format.push_back(p2);
+		num_format ++;
+	} else {
+		for (double i = endAngle; i>startAngle; i -= arc_slice_angle_rad) {
+			BRDPoint p {};
+			p.x = pc.x + r * cos(i);
+			p.y = pc.y + r * sin(i);
+			format.push_back(p);
+			num_format ++;
+		}
+		format.push_back(p1);
+		num_format ++;
+	}
 }
 
 bool GenCADFile::x_y_ref_to_brd_point(mpc_ast_t *x_y_ref, BRDPoint *point)
