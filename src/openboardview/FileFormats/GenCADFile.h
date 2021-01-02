@@ -50,6 +50,7 @@ private:
 	mpc_ast_t *get_device_by_name(const char *name);
 	mpc_ast_t *get_shape_by_name(const char *name);
 	char *get_nonquoted_or_quoted_string_child(mpc_ast_t *parent, const char * name);
+	char *get_stringtoend_child(mpc_ast_t *parent, const char * name);
 	mpc_ast_t *get_padstack_by_name(const char* padstack_name);
 	mpc_ast_t *get_pad_by_name(const char* pad_name);
 	double get_padstack_radius(mpc_ast_t *padstack_ast);
