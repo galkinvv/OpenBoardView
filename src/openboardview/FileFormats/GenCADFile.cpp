@@ -232,7 +232,6 @@ bool GenCADFile::parse_components()
 
 			mpc_ast_t *shape_ref_ast = mpc_ast_get_child(component_ast, "shape_|>");
 			if (shape_ref_ast) {
-				//if (shapes_ast->children_num > )
 				char *shape_name_str = get_nonquoted_or_quoted_string_child(shape_ref_ast, "shape_name");
 				if (shape_name_str) {
 					mpc_ast_t *shape_ast = get_shape_by_name(shape_name_str);
@@ -613,7 +612,7 @@ int GenCADFile::board_unit_to_brd_coordinate(double brdUnit)
 		case GenCADFile::MM100:
 			return static_cast<int>(brdUnit * (1.0/2.54));
 		case GenCADFile::USER:
-			return static_cast<int>(m_dimension_unit * brdUnit);
+			return static_cast<int>((m_dimension_unit * brdUnit) / 1000);
 		case GenCADFile::USERCM:
 			return static_cast<int>(m_dimension_unit * brdUnit * (10.0/2.54));
 		case GenCADFile::USERMM:
