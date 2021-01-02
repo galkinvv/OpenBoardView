@@ -13,7 +13,7 @@
  *********************************************************************************
  **/
  
-#include "../../mpc/mpc.h"
+#include "mpc/mpc.h"
 
 
 #define X_MACRO_PARSE_VARS\
@@ -116,6 +116,7 @@
   X(shapes_pin, "shapes_pin")\
   X(shape, "shape")\
   X(shapes, "shapes")\
+  X(device_name, "device_name")\
   X(device_, "device_")\
   X(place, "place")\
   X(rotation, "rotation")\
