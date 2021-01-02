@@ -1,5 +1,6 @@
 #include "GenCADFile.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
@@ -248,7 +249,9 @@ bool GenCADFile::parse_components()
 
 			mpc_ast_t *component_device_ast = mpc_ast_get_child(component_ast, "device_|>");
 			if (component_device_ast) {
-				char *dev_name = get_nonquoted_or_quoted_string_child(component_device_ast, "part_name");
+				char *dev_name = get_stringtoend_child(component_device_ast, "device_name");
+				// workaround for RSI-TRANSLATOR CAMCAD bad COMPONENT -> DEVICE references
+				std::replace(dev_name, dev_name + strlen(dev_name), ' ', '_');
 				if (dev_name)
 					brd_part.mfgcode = dev_name;
 			}
@@ -646,6 +649,28 @@ char *GenCADFile::get_nonquoted_or_quoted_string_child(mpc_ast_t *parent, const 
 {
 	char *key = static_cast<char*>(malloc(strlen(name) + 25));
 	sprintf(key, "%s|nonquoted_string|regex", name);
+	mpc_ast_t *ret_ast = mpc_ast_get_child(parent, key);
+	if (ret_ast) {
+		free(key);
+		return ret_ast->contents;
+	}
+
+	sprintf(key, "%s|string|>", name);
+	ret_ast = mpc_ast_get_child(parent, key);
+	if (ret_ast) {
+		free(key);
+		auto value_ast = mpc_ast_get_child(ret_ast, "regex");
+		if (value_ast)
+			return value_ast->contents;
+	}
+	free(key);
+	return nullptr;
+}
+
+char *GenCADFile::get_stringtoend_child(mpc_ast_t *parent, const char *name)
+{
+	char *key = static_cast<char*>(malloc(strlen(name) + 25));
+	sprintf(key, "%s|string_to_end|regex", name);
 	mpc_ast_t *ret_ast = mpc_ast_get_child(parent, key);
 	if (ret_ast) {
 		free(key);
