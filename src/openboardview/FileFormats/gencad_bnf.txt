@@ -15,8 +15,7 @@ arc_ref             : <arc_start> <s>* <arc_end> <s>* <arc_center> <s>* <arc_p1>
 artwork_name        : <string> ;
 attribute_category  : <nonquoted_string> ;
 attribute_name      : (<nonquoted_string>|<string>) ;
-attribute_data      : (<nonquoted_string>|<string>) ;
-attrib_ref          : <attribute_category> <s>* <attribute_name> <s>* <attribute_data>;
+attribute_data      : <string_to_end> ;
 radius              : <number>;
 circle_ref          : <x_y_ref> <s>* <radius> <s>*;
 component_name      : <nonquoted_string> ;
@@ -66,7 +65,7 @@ unit                : <dimension>;
 units               : "UNITS" <s>* <unit> <n>;
 origin              : "ORIGIN" <s>* <x_y_ref> <n>;
 intertrack          : "INTERTRACK" <s>* <number> <n>;
-attribute           : "ATTRIBUTE" <s>* <attrib_ref> <n>;
+attribute           : "ATTRIBUTE" <s>* <attribute_category> <s>* <attribute_name> <s>* <attribute_data> <n>;
 name                : /[^\s\t\r\n$]*/;
 thickness           : "THICKNESS" <s>* <number> <n>;
 line                : "LINE" <s>* <line_ref> <n>;
