@@ -1,3 +1,5 @@
+#pragma once /*SKIP_LINE_IN_GRAMMAR_GENERATOR*/
+const char* kGenCadFileBnf = /*SKIP_LINE_IN_GRAMMAR_GENERATOR*/ R"MultiLineString(
 s                   : /[ \t]/ ;
 n                   : /\r?\n/ ;
 sign                : '+' | '-' ;
@@ -163,3 +165,4 @@ dev_change          : "DEVICE" <s>* <part_name> <s> <part_name> <n>;
 change              : "CHANGE" <s>* <string> <n> (<sig_change>|<dev_change>)*;
 changes             : "$CHANGES" <n> <change>* "$ENDCHANGES";
 gencad_file         : <header> (<board>|<pads>|<padstacks>|<artworks>|<shapes>|<devices>|<components>|<signals>|<tracks>|<layers>|<routes>|<mech>|<testpins>|<powerpins>|<pseudos>|<changes>)*;
+)MultiLineString"; /*SKIP_LINE_IN_GRAMMAR_GENERATOR*/
