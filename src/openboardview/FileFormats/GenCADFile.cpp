@@ -1,4 +1,5 @@
 #include "GenCADFile.h"
+#include "GENCADFileBnf.h"
 
 #include <algorithm>
 #include <cmath>
@@ -23,9 +24,9 @@ bool GenCADFile::parse_file(const char *filename_)
 		#undef X
 
 		#define X(CVAR, NAME) CVAR,
-			mpc_err_t *language_error = mpca_lang_contents(
+			mpc_err_t *language_error = mpca_lang(
 				MPCA_LANG_WHITESPACE_SENSITIVE,
-				"/home/mm/Projektek/OpenBoardView/src/openboardview/FileFormats/gencad_bnf.txt", // FIXME
+				kGenCadFileBnf,
 				X_MACRO_PARSE_VARS NULL);
 #undef X
 	FILE *handle = nullptr;
