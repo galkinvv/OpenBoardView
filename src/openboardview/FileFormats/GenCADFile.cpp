@@ -1,6 +1,7 @@
 #include "GenCADFile.h"
 #include "GENCADFileBnf.h"
 
+#include "utils.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -11,12 +12,17 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-GenCADFile::GenCADFile(const char *filename)
+bool GenCADFile::verifyFormat(const std::vector<char> &buf)
 {
-	valid = parse_file(filename);
+	return find_str_in_buf("GENCAD", buf) && find_str_in_buf("$BOARD", buf);
 }
 
-bool GenCADFile::parse_file(const char *filename_)
+GenCADFile::GenCADFile(const std::vector<char> &buf)
+{
+	valid = parse_file(buf);
+}
+
+bool GenCADFile::parse_file(const std::vector<char> &buf)
 {
 	bool ret = false;
 #define X(CVAR, NAME) mpc_parser_t *CVAR = mpc_new((NAME));
@@ -29,7 +35,6 @@ bool GenCADFile::parse_file(const char *filename_)
 				kGenCadFileBnf,
 				X_MACRO_PARSE_VARS NULL);
 #undef X
-	FILE *handle = nullptr;
 	try {
 		if (language_error != nullptr) {
 			std::string parser_error("Failed to parse GenCAD file, parser reported:\n");
@@ -38,14 +43,10 @@ bool GenCADFile::parse_file(const char *filename_)
 			throw  parser_error;
 		}
 
-		handle = fopen(filename_, "rb");
-		if(!handle)
-			return false;
-
 		mpc_result_t r;
 		mpc_ast_t *ast = nullptr;
 		ret = true;
-		if (mpc_parse_file(filename_, handle, gencad_file, &r)) {
+		if (mpc_nparse("", buf.data(), buf.size(), gencad_file, &r)) {
 			ast = static_cast<mpc_ast_t*>(r.output);
 			if (!ast)
 				throw std::string("Failed to parse GenCAD file: the file does not match the GenCAD format specification");
@@ -143,8 +144,6 @@ bool GenCADFile::parse_file(const char *filename_)
 				X_MACRO_PARSE_VARS NULL
 				);
 #undef X
-	if (handle)
-		fclose(handle);
 	return ret;
 }
 

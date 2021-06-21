@@ -425,7 +425,7 @@ int BoardView::LoadFile(const filesystem::path &filepath) {
 		std::vector<char> buffer = file_as_buffer(filepath);
 		if (!buffer.empty()) {
 			BRDFileBase *file = nullptr;
-			if (check_fileext(filename, ".cad")) {
+			if (GenCADFile::verifyFormat(buffer)) {
 				file = new GenCADFile(buffer);
 			} else if (check_fileext(filepath, ".fz")) { // Since it is encrypted we cannot use the below logic. Trust the ext.
 				file = new FZFile(buffer, FZKey);

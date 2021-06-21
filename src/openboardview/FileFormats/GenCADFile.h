@@ -19,7 +19,9 @@ enum cleanup_length_e
 class GenCADFile : public BRDFileBase
 {
 public:
-	GenCADFile(const char *filename);
+	static bool verifyFormat(const std::vector<char> &buf);
+
+	GenCADFile(const std::vector<char> &buf);
 
 	enum Dimension {
 		INCH,			// Inches.
@@ -35,7 +37,7 @@ public:
 private:
 	enum Dimension m_dimension = INCH;
 	int m_dimension_unit = 0;
-	bool parse_file(const char* filename);
+	bool parse_file(const std::vector<char> &buf);
 
 	bool parse_dimension_units(mpc_ast_t *header_ast);
 	bool parse_board_outline(mpc_ast_t *board_ast);
