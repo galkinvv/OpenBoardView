@@ -6,6 +6,7 @@
 #include "GENCADFileGrammar.h"
 
 #include <string>
+#include <map>
 
 enum cleanup_length_e
 {
@@ -48,7 +49,8 @@ private:
 
 	bool parse_shape_pins_to_component(BRDPart *part, double rotation_in_degrees, mpc_ast_t *shape_ast);
 
-	char *get_signal_name_for_component_pin(const char *component_name, mpc_ast_t *pin_ast);
+	void fill_signals_cache();
+	const char *get_signal_name_for_component_pin(const char *component_name, mpc_ast_t *pin_ast);
 	mpc_ast_t *get_device_by_name(const char *name);
 	mpc_ast_t *get_shape_by_name(const char *name);
 	char *get_nonquoted_or_quoted_string_child(mpc_ast_t *parent, const char * name);
@@ -77,6 +79,8 @@ private:
 	mpc_ast_t *tracks_ast = nullptr;
 	mpc_ast_t *layers_ast = nullptr;
 
+	typedef std::tuple<std::string, std::string> ComponentPin;
+	std::map<ComponentPin, std::string> m_signals_cache;
 	int nc_counter = 0;
 
 	double distance(BRDPoint &p1, BRDPoint &p2);

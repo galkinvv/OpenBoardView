@@ -191,6 +191,7 @@ bool GenCADFile::parse_route_vias(mpc_ast_t *route_ast)
 
 bool GenCADFile::parse_components()
 {
+	fill_signals_cache();
 	for(int i = 0; i >= 0;) {
 		i = mpc_ast_get_index_lb(components_ast, "component|>", i);
 		if (i >= 0) {
@@ -324,40 +325,44 @@ bool GenCADFile::parse_shape_pins_to_component(BRDPart *part,
 	return true;
 }
 
-char *GenCADFile::get_signal_name_for_component_pin(const char *component_name, mpc_ast_t *pin_ast)
+void GenCADFile::fill_signals_cache()
+{
+	for(int i = 0;;) {
+		i = mpc_ast_get_index_lb(signals_ast, "signal|>", i);
+		if (i < 0) break;
+		mpc_ast_t *signal_ast = mpc_ast_get_child_lb(signals_ast, "signal|>", i);
+		for(int j = 0;;) {
+			j = mpc_ast_get_index_lb(signal_ast, "node|>", j);
+			if (j < 0) break;
+			mpc_ast_t *node_ast = mpc_ast_get_child_lb(signal_ast, "node|>", j);
+			mpc_ast_t *node_comp_name_ast = mpc_ast_get_child(node_ast, "component_name|nonquoted_string|regex");
+			mpc_ast_t *node_pin_name_ast = mpc_ast_get_child(node_ast, "pin_name|nonquoted_string|regex");
+			mpc_ast_t *signal_name_ast = mpc_ast_get_child(signal_ast, "sig_name|nonquoted_string|regex");
+			if (node_comp_name_ast && node_comp_name_ast->contents &&
+				node_pin_name_ast && node_pin_name_ast->contents &&
+				signal_name_ast && signal_name_ast->contents)
+			{
+				ComponentPin key = {node_comp_name_ast->contents, node_pin_name_ast->contents};
+				m_signals_cache[key] = signal_name_ast->contents;
+			}
+			j++;
+		}
+		i++;
+	}
+}
+
+const char *GenCADFile::get_signal_name_for_component_pin(const char *component_name, mpc_ast_t *pin_ast)
 {
 	mpc_ast_t *pin_name_ast = mpc_ast_get_child(pin_ast, "shape_pin_name|nonquoted_string|regex");
 	if (!pin_name_ast)
 		return  nullptr;
 
-	size_t pin_name_length = strlen(pin_name_ast->contents);
-	size_t comp_name_length = strlen(component_name);
-	for(int i = 0; i >= 0;) {
-		i = mpc_ast_get_index_lb(signals_ast, "signal|>", i);
-		if (i >= 0) {
-			mpc_ast_t *signal_ast = mpc_ast_get_child_lb(signals_ast, "signal|>", i);
-			for(int j = 0; j >= 0;) {
-				j = mpc_ast_get_index_lb(signal_ast, "node|>", j);
-				if (j >= 0) {
-					mpc_ast_t *node_ast = mpc_ast_get_child_lb(signal_ast, "node|>", j);
-					mpc_ast_t *node_comp_name_ast = mpc_ast_get_child(node_ast, "component_name|nonquoted_string|regex");
-					mpc_ast_t *node_pin_name_ast = mpc_ast_get_child(node_ast, "pin_name|nonquoted_string|regex");
-					if (node_comp_name_ast && node_pin_name_ast
-							&& strlen(node_comp_name_ast->contents) == comp_name_length
-							&& strcmp(node_comp_name_ast->contents, component_name) == 0
-							&& strlen(node_pin_name_ast->contents) == pin_name_length
-							&& strcmp(node_pin_name_ast->contents, pin_name_ast->contents) == 0) {
-						mpc_ast_t *signal_name_ast = mpc_ast_get_child(signal_ast, "sig_name|nonquoted_string|regex");
-						if (signal_name_ast) {
-							return signal_name_ast->contents;
-						}
-						return nullptr;
-					}
-					j++;
-				}
-			}
-			i++;
-		}
+	ComponentPin key = {component_name, pin_name_ast->contents};
+
+	auto found_pin = m_signals_cache.find(key);
+	if (found_pin != m_signals_cache.end())
+	{
+		return found_pin->second.c_str();
 	}
 	return nullptr;
 }
