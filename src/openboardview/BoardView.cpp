@@ -25,6 +25,7 @@
 #include "FileFormats/CADFile.h"
 #include "FileFormats/CSTFile.h"
 #include "FileFormats/FZFile.h"
+#include "FileFormats/GenCADFile.h"
 #include "annotations.h"
 #include "imgui/imgui.h"
 
@@ -424,8 +425,9 @@ int BoardView::LoadFile(const filesystem::path &filepath) {
 		std::vector<char> buffer = file_as_buffer(filepath);
 		if (!buffer.empty()) {
 			BRDFile *file = nullptr;
-
-			if (check_fileext(filepath, ".fz")) { // Since it is encrypted we cannot use the below logic. Trust the ext.
+			if (check_fileext(filename, ".cad")) {
+				file = new GenCADFile(buffer);
+			} else if (check_fileext(filepath, ".fz")) { // Since it is encrypted we cannot use the below logic. Trust the ext.
 				file = new FZFile(buffer, FZKey);
 			} else if (check_fileext(filepath, ".bom") || check_fileext(filepath, ".asc"))
 				file = new ASCFile(buffer, filepath);
@@ -472,11 +474,11 @@ int BoardView::LoadFile(const filesystem::path &filepath) {
 				CenterView();
 				m_lastFileOpenWasInvalid = false;
 				m_validBoard             = true;
-
-			} else {
-				m_validBoard = false;
-				delete file;
 			}
+		} else {
+			m_lastFileLoadError = file->error_string;
+			m_validBoard = false;
+			delete file;
 		}
 	} else {
 		return 1;
@@ -2091,6 +2093,7 @@ void BoardView::Update() {
 
 		if (ImGui::BeginPopupModal("Error opening file")) {
 			ImGui::Text("There was an error opening the file: %s", m_lastFileOpenName.c_str());
+			ImGui::Text("%s", m_lastFileLoadError.c_str());
 			if (check_fileext(m_lastFileOpenName, ".fz")) {
 				int i;
 				ImGui::Separator();
@@ -4068,7 +4071,7 @@ void BoardView::CenterView(void) {
 	m_needsRedraw = true;
 }
 
-void BoardView::SetFile(BRDFile *file) {
+void BoardView::SetFile(BRDFileBase *file) {
 	delete m_file;
 	delete m_board;
 
