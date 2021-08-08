@@ -339,10 +339,13 @@ void BoardView::ShowInfoPane(void) {
 					// std::string speed is no concern here, since button action is not in UI rendering loop
 					std::string to_copy = part->name;
 					if (part->mfgcode.size()) {
-						to_copy += " " + part->mfgcode;
+						to_copy += " " + part->mfgcode;// + " " + std::to_string(part->omax.x - part->omin.x)+ "x" + std::to_string(part->omax.y - part->omin.y);
 					}
+					ImVec2 part_size(part->omax.x - part->omin.x, part->omax.y - part->omin.y);
+					to_copy += " widthXheight:" + std::to_string(part->omax.x - part->omin.x)+ "x" + std::to_string(part->omax.y - part->omin.y);
 					for (const auto &pin : part->pins) {
-						to_copy += "\n" + pin->name + " " + pin->net->name;
+						Point pos = pin->position;
+						to_copy += "\n" + pin->name + " " + pin->net->name + " xy: " + std::to_string((pos.x - part->omin.x)/part_size.x) + " " + std::to_string((pos.y - part->omin.y)/part_size.y);
 					}
 					ImGui::SetClipboardText(to_copy.c_str());
 				}
