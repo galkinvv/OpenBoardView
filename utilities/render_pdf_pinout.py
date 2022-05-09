@@ -4,14 +4,16 @@ import sys
 import csv
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
+input_coord_scale = 1404/1944 # linear size relative to ga102 (~49.4mm between side ball centers)
+ball_step_scale = 0.7/0.8 # distance between pins relative to ga102 (0.8mm)
 def write_on_canvas(in_name, c, radius, scale):
 	c.scale(scale, scale)
 	pinout = csv.reader(open(in_name).readlines()[1:], delimiter=" ")
 	c.circle(-0.015, 1.015, radius*2, stroke=0, fill=1)
 	for pin in pinout:
 		name = pin[0] + "_" + pin[1]
-		pos = (float(pin[3]), float(pin[4]))
-		c.circle(pos[0], pos[1], radius, stroke=0, fill=1)
+		pos = (float(pin[3]) * input_coord_scale, float(pin[4]) * input_coord_scale + (1. - input_coord_scale))
+		c.circle(pos[0], pos[1], radius * ball_step_scale, stroke=0, fill=1)
 
 #internal units are in 72DPI.
 
