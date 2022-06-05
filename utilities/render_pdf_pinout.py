@@ -26,7 +26,7 @@ shift = scale * 1.13
 fix_x = shift * 1
 fix_y = 22*mm
 for j, r in enumerate((0., 0.0003, 0.0006, 0.0009, 0.0012)):
-	scales = (0.1, 0.13, 0.15)
+	scales = (0.16, 0.17, 0.18)
 	for i, s in enumerate(scales):
 		y_shift = fix_y + shift * i
 		c.saveState()
