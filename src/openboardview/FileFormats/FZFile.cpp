@@ -142,7 +142,6 @@ char *FZFile::split(char *file_buf, size_t buffer_size, size_t &content_size, ch
 char *FZFile::decompress(char *file_buf, size_t buffer_size, size_t &output_size) {
 	output_size = buffer_size;
 	if (buffer_size == 0) return nullptr;
-
 	char *output = (char *)calloc(output_size, sizeof(char));
 
 	z_stream zst;
@@ -467,8 +466,8 @@ void FZFile::parse(std::vector<char> &buf, const std::array<uint32_t, 44> &fzkey
 			}
 		}
 	}
-
-	//	std::sort(pins.begin(), pins.end()); // sort vector by part num then pin num
+	// sort pins by part num then by num/name
+	std::stable_sort(pins.begin(), pins.end(), BRDPin::LessByPartAndNumberAndName());
 	for (std::vector<int>::size_type i = 0; i < pins.size(); i++) {
 		// update end_of_pins field
 		if (pins[i].part > 0) parts[pins[i].part - 1].end_of_pins = i;
