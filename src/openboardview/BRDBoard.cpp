@@ -2,6 +2,7 @@
 
 #include "FileFormats/BRDFile.h"
 
+#include <algorithm>
 #include <cerrno>
 #include <fstream>
 #include <functional>
@@ -101,11 +102,8 @@ BRDBoard::BRDBoard(const BRDFileBase * const boardFile)
 		// NOTE: originally the pin diameter depended on part.name[0] == 'U' ?
 		unsigned int pin_idx  = 0;
 		unsigned int part_idx = 1;
-		auto pins             = m_file->pins;
 
-		for (size_t i = 0; i < pins.size(); i++) {
-			// (originally from BoardView::DrawPins)
-			const BRDPin &brd_pin = pins[i];
+		for (auto &brd_pin: m_file->pins) {
 			std::shared_ptr<Component> comp       = components_[brd_pin.part - 1];
 
 			if (!comp) continue;
@@ -201,6 +199,11 @@ BRDBoard::BRDBoard(const BRDFileBase * const boardFile)
 		components_.erase(
 		    remove_if(begin(components_), end(components_), [](std::shared_ptr<Component> &comp) { return comp->is_dummy(); }),
 		    end(components_));
+
+		// sort pins according to BGA pin naming
+		for (auto &component: components_) {
+		  std::stable_sort(component->pins.begin(), component->pins.end(), Pin::LessByNumberAndName());
+		}
 
 		components_.push_back(comp_dummy);
 	}

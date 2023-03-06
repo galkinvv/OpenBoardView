@@ -481,8 +481,6 @@ ADFile::ADFile(std::vector<char> &buf) {
 		parts.push_back(part);
 	}
 
-	std::sort(pins.begin(), pins.end(), customLess);
-
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 
 	valid = 1;
