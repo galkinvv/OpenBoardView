@@ -46,8 +46,8 @@ HDDEDATA CALLBACK PDFBridgeSumatra::DdeCallback(
     HSZ hsz1,       // Handle to a string.
     HSZ hsz2,       // Handle to a string.
     HDDEDATA hdata, // Handle to a global memory object.
-    DWORD dwData1,  // Transaction-specific data.
-    DWORD dwData2) { // Transaction-specific data.
+    ULONG_PTR dwData1,  // Transaction-specific data.
+    ULONG_PTR dwData2) { // Transaction-specific data.
 	SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, "PDFBridgeSumatra DdeCallback, uType=%d", uType);
 
 

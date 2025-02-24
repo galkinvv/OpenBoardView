@@ -1,0 +1,144 @@
+name: Build and make packages
+on: [push, pull_request]
+jobs:
+  build-and-package_DEB_RPM_MINGW:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: docker/setup-buildx-action@v3 # enable caching support for action below
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: openboardview.org/build-env:latest
+          cache-from: type=gha
+          cache-to: type=gha
+        env:
+          DOCKER_BUILD_CHECKS_ANNOTATIONS: false
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+      - name: Mingw build debug
+        if: always()
+        run: >
+            docker run --rm -t -v "$PWD:$PWD" -w "$PWD" openboardview.org/build-env:latest sh -c '
+            (cd /usr/src && tar xf SDL2-devel-${MINGW_SDL2_VER}-mingw.tar.gz && make -C SDL2-${MINGW_SDL2_VER} cross CROSS_PATH=/usr) &&
+            CROSS=mingw64 bash ./build.sh --recompile --debug &&
+            mv bin/openboardview.exe bin/openboardview_DEBUG.exe
+            '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "openboardview_DEBUG-32bit.exe.${{ github.sha }}"
+          path: bin/openboardview_DEBUG.exe
+      - name: Mingw build
+        if: always()
+        run: >
+            docker run --rm -t -v "$PWD:$PWD" -w "$PWD" openboardview.org/build-env:latest sh -c '
+            (cd /usr/src && tar xf SDL2-devel-${MINGW_SDL2_VER}-mingw.tar.gz && make -C SDL2-${MINGW_SDL2_VER} cross CROSS_PATH=/usr) &&
+            CROSS=mingw64 bash ./build.sh --recompile
+            '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "openboardview-32bit.exe.${{ github.sha }}"
+          path: bin/openboardview.exe
+      - name: Linux build_DEBUG
+        if: always()
+        run: >
+          docker run --rm -t -v "$PWD:$PWD" -w "$PWD" openboardview.org/build-env:latest sh -c '
+          bash ./build.sh --recompile --debug &&
+          mv bin/openboardview bin/openboardview_DEBUG
+          '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "openboardview_DEBUG_linux_elf.${{ github.sha }}"
+          path: bin/openboardview_DEBUG
+      - name: Linux build
+        if: always()
+        run: >
+          docker run --rm -t -v "$PWD:$PWD" -w "$PWD" openboardview.org/build-env:latest sh -c '
+          bash ./build.sh --recompile &&
+          cd release_build &&
+          make package
+          '
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "openboardview_package_linux_deb.${{ github.sha }}"
+          path: '*.deb'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "openboardview_package_linux_rpm.${{ github.sha }}"
+          path: '*.rpm'
+  build-and-package_intel-DMG:
+    runs-on: macos-13 # intel runner
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: MacOS dependencies
+        run: brew update && brew install sdl2
+      - name: MacOS build
+        run: TERM=xterm bash ./build.sh --recompile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: "openboardview_package_macos13_intel_dmg.${{ github.sha }}"
+          path: '*.dmg'
+  build-and-package_universal-DMG:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: MacOS dependencies
+        uses: BrettDong/setup-sdl2-frameworks@v2 # Installing as a framework to build univeral x86_64 + arm64 binary
+        with:
+          sdl2: 2.32.0
+      - name: MacOS build
+        run: TERM=xterm bash ./build.sh --recompile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: "openboardview_package_macos15_universal_dmg.${{ github.sha }}"
+          path: '*.dmg'
+  build-64bit-exe-on-windows:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Set up shell
+        shell: bash
+        run: |
+          echo 'C:\msys64\usr\bin\' >> "$GITHUB_PATH"
+          echo 'C:\msys64\ucrt64\bin\' >> "$GITHUB_PATH"
+      - name: Install dependencies
+        shell: bash
+        run: |
+          pacman -Sy
+          pacman -S --noconfirm make mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cmake mingw-w64-ucrt-x86_64-SDL2
+          # Preinstalled python forced into UTF8 mode is used
+      - name: Build ucrt64 debug
+        if: always()
+        shell: bash
+        run: |
+          PYTHONUTF8=1 ./build.sh --debug --recompile
+          mv bin/openboardview.exe bin/openboardview_DEBUG.exe
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "openboardview_DEBUG-ucrt64.exe.${{ github.sha }}"
+          path: bin/openboardview_DEBUG.exe
+      - name: Build ucrt64
+        if: always()
+        shell: bash
+        run: |
+          PYTHONUTF8=1 ./build.sh --recompile
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "openboardview-ucrt64.exe.${{ github.sha }}"
+          path: bin/openboardview.exe

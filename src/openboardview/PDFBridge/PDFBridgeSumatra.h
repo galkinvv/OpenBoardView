@@ -35,7 +35,7 @@ private:
 
 	PDFBridgeSumatra(Confparse &obvconfig);
 
-	static HDDEDATA CALLBACK DdeCallback(UINT uType, UINT uFmt, HCONV hconv, HSZ hsz1, HSZ hsz2, HDDEDATA hdata, DWORD dwData1, DWORD dwData2);
+	static HDDEDATA CALLBACK DdeCallback(UINT uType, UINT uFmt, HCONV hconv, HSZ hsz1, HSZ hsz2, HDDEDATA hdata, ULONG_PTR dwData1, ULONG_PTR dwData2);
 	bool InitializeDDE();
 	bool StartDDEServer(const std::wstring &service, const std::wstring &topic);
 	bool ConnectDDEClient(const std::wstring &service, const std::wstring &topic);

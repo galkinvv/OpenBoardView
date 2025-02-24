@@ -15,13 +15,13 @@
 #include "BoardView.h"
 #include "history.h"
 
-#include "FileFormats/FZFile.h"
 #include "confparse.h"
 #include "resource.h"
 #include <SDL.h>
 #include <chrono>
 #include <memory>
 #include <cstdio>
+#include <cmath>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>

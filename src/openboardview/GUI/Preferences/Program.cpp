@@ -89,7 +89,11 @@ void Program::render() {
 
 		RightAlignedText("PDF software executable", DPI(250));
 		ImGui::SameLine();
-		ImGui::InputText("##pdfSoftwarePath", &config.pdfSoftwarePath;
+
+		if (config.pdfSoftwarePath.size() < 256)                           // reserve space for path
+			config.pdfSoftwarePath.resize(256, '\0');                      // Max path name length is 255 characters
+
+		ImGui::InputText("##pdfSoftwarePath", config.pdfSoftwarePath.data(), config.pdfSoftwarePath.size());
 		ImGui::SameLine();
 		if (ImGui::Button("Browse##pdfSoftwarePath")) {
 			auto path = show_file_picker();
@@ -180,6 +184,32 @@ void Program::render() {
 					c++;
 				}
 				config.SetFZKey(keybuf);
+			}
+		}
+
+		ImGui::Separator();
+		{
+			char caekeybuf[1024];
+			int i;
+			ImGui::Text("CAE Key");
+			ImGui::SameLine();
+			for (i = 0; i < 44; i++) {
+				sprintf(caekeybuf + (i * 12),
+				        "0x%08lx%s",
+				        (long unsigned int)config.CAEKey[i],
+				        (i != 43) ? ((i + 1) % 4 ? "  " : "\r\n")
+				                  : ""); // yes, a nested inline-if-else. add \r\n after every 4 values, except if the last
+			}
+			if (ImGui::InputTextMultiline(
+			        "##caekey", caekeybuf, sizeof(caekeybuf), ImVec2(DPI(450), ImGui::GetTextLineHeight() * 12.5), 0, NULL, caekeybuf)) {
+
+				// Strip the line breaks out.
+				char *c = caekeybuf;
+				while (*c) {
+					if ((*c == '\r') || (*c == '\n')) *c = ' ';
+					c++;
+				}
+				config.SetCAEKey(caekeybuf);
 			}
 		}
 

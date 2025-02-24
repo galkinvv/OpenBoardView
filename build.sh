@@ -80,7 +80,7 @@ fi
 # Now compile the source code and install it in server's directory
 echo "$STRCOMPILE $PROJECT using $(color 4 $THREADS) $STRTHREADS ($BUILDTYPE build)"
 echo "Extra flags passed to CMake: $COMPILEFLAGS"
-cmake $COMPILEFLAGS ..
+cmake -G "Unix Makefiles" $COMPILEFLAGS ..
 [ "$?" != "0" ] && color 1 "CMAKE FAILED" && exit 1
 if `echo "$COMPILEFLAGS" | grep -q "DEBUG"`; then
   make -j$THREADS install

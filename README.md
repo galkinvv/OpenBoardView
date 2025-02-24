@@ -1,4 +1,4 @@
-## Open Board Viewer [![Build Status](https://travis-ci.org/OpenBoardView/OpenBoardView.svg?branch=master)](https://travis-ci.org/OpenBoardView/OpenBoardView)
+## Open Board Viewer [![Build Status](../../actions/workflows/make_packages.yml/badge.svg?event=push)](../../actions/)
 
 Linux SDL/ImGui edition software for viewing .brd files, intended as a drop-in
 replacement for the "Test_Link" software and "Landrex".
