@@ -13,6 +13,8 @@
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
+#include <iostream>
+
 
 bool GenCADFile::verifyFormat(const std::vector<char> &buf) {
 	return find_str_in_buf("GENCAD", buf) && (find_str_in_buf("$HEADER", buf));
@@ -170,6 +172,7 @@ bool GenCADFile::parse_components() {
 			BRDPart brd_part;
 			char *component_name = get_nonquoted_or_quoted_string_child(component_ast, "component_name");
 			if (component_name) {
+				std::cout << component_name << " " << i << std::endl;
 				brd_part.name = component_name;
 			}
 
@@ -211,6 +214,13 @@ bool GenCADFile::parse_components() {
 			if (shape_ref_ast) {
 				char *shape_name_str = get_nonquoted_or_quoted_string_child(shape_ref_ast, "shape_name");
 				if (shape_name_str && *shape_name_str) {
+					PositionedNamedShape duplicate_check_id{brd_part.p1.x, brd_part.p1.y, shape_name_str};
+					if (!m_parsed_shapes.insert(duplicate_check_id).second)
+					{
+						i++;
+						continue; //component with duplicate shape&position, ignore it.
+					}
+
 					if (!brd_part.mfgcode.empty()) {
 						brd_part.mfgcode += " SHAPE ";
 					}
@@ -263,13 +273,6 @@ bool GenCADFile::parse_shape_pins_to_component(
 					BRDPin pin;
 					pin.radius = 0.5;
 					mpc_ast_t *padstack_name_ast = mpc_ast_get_child(pin_ast, "pad_name|nonquoted_string|regex");
-					mpc_ast_t *padstack_ast = 0;
-					if (padstack_name_ast) {
-						padstack_ast = get_padstack_by_name(padstack_name_ast->contents);
-						// enable the code below once the pin.radius will be processed
-						//if (padstack_ast)
-						//	pin.radius = get_padstack_radius(padstack_ast);
-					}
 
 					// part is not yet added to the list at this point
 					pin.part  = static_cast<unsigned int>(parts.size() + 1);
@@ -290,8 +293,15 @@ bool GenCADFile::parse_shape_pins_to_component(
 						nc_counter++;
 					}
 
-					if (padstack_ast) {
-						pin.side = get_padstack_side(padstack_ast);
+					const PadStackInfo *padstack_cached_info = nullptr;
+					if (padstack_name_ast) {
+						auto padstack_entry = m_pad_stack_cache.find(padstack_name_ast->contents);
+						if (padstack_entry != m_pad_stack_cache.end()) {
+							padstack_cached_info = &padstack_entry->second;
+						}
+					}
+					if (padstack_cached_info) {
+						pin.side = padstack_cached_info->side;
 					} else {
 						switch (part->mounting_side) {
 							case BRDPartMountingSide::Top:    pin.side = BRDPinSide::Top;    break;
@@ -531,8 +541,8 @@ bool GenCADFile::is_shape_smd(mpc_ast_t *shape_ast) {
 			char *pad_name = get_nonquoted_or_quoted_string_child(pin_ast, "pad_name");
 			if (!pad_name) continue;
 
-			mpc_ast_t *padstack_ast = get_padstack_by_name(pad_name);
-			if (padstack_ast && is_padstack_drilled(padstack_ast)) {
+			auto padstack_entry = m_pad_stack_cache.find(pad_name);
+			if (padstack_entry != m_pad_stack_cache.end() && padstack_entry->second.is_drilled) {
 				return false;
 			}
 			i++;
@@ -620,6 +630,10 @@ mpc_ast_t *GenCADFile::get_padstack_by_name(const char *padstack_name_wanted) {
 	if (padstacks_ast == nullptr) {
 		return nullptr;
 	}
+	// extend & enable the code below once the pin.radius will be processed
+	//if (padstack_ast)
+	//	info.radius = get_padstack_radius(padstack_ast);
+
 
 	for (int i = 0; i >= 0;) {
 		i = mpc_ast_get_index_lb(padstacks_ast, "padstack|>", i);

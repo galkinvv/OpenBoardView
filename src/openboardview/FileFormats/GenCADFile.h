@@ -7,7 +7,9 @@
 
 #include "mpc/mpc.h"
 
+#include <unordered_map>
 #include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -79,7 +81,21 @@ class GenCADFile : public BRDFileBase {
 	mpc_ast_t *padstacks_ast  = nullptr;
 
 	typedef std::tuple<std::string, std::string> ComponentPin;
-	std::map<ComponentPin, std::string> m_signals_cache;
+	struct ComponentPinHasher {
+		std::size_t operator()(const ComponentPin& component_pin)const
+		{
+			std::hash<std::string> sh;
+			return sh(std::get<0>(component_pin)) ^ sh(std::get<1>(component_pin));
+		}
+	};
+	std::unordered_map<ComponentPin, std::string, ComponentPinHasher> m_signals_cache;
+	struct PadStackInfo {
+		bool is_drilled;
+		BRDPinSide side;
+	};
+	std::unordered_map<std::string, PadStackInfo> m_pad_stack_cache;
+	typedef std::tuple<int, int, std::string> PositionedNamedShape;
+	std::set<PositionedNamedShape> m_parsed_shapes;
 	int nc_counter = 0;
 
 };
