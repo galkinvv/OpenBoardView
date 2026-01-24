@@ -116,6 +116,7 @@ bool GenCADFile::parse_file(const std::vector<char> &buf) {
 		    "https://github.com/OpenBoardView/OpenBoardView/issues\n");
 	}
 
+    std::stable_sort(pins.begin(), pins.end(), BRDPin::LessByPartAndNumberAndName());
 #define X(CVAR, NAME) CVAR,
 	mpc_cleanup(PARSE_VARS_COUNT, X_MACRO_PARSE_VARS NULL);
 #undef X

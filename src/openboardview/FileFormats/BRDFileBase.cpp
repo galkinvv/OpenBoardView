@@ -74,21 +74,33 @@ done:
 }
 
 struct PinNameParseInfo {
+	const char* BRDPin::*non_digit_prefix_member = nullptr;
 	int non_digit_prefix_len = 0;
-	int digits_value         = 0;
+	int digits_value_combined = 0;
 };
 
 static PinNameParseInfo pin_name_parse(const BRDPin &pin) {
 	PinNameParseInfo result = {};
-	if (pin.name != nullptr) {
-		for (;;) {
-			char next = pin.name[result.non_digit_prefix_len];
-			if (next == '\0' || (next >= '0' && next <= '9')) {
-				break;
+	// text from snum has priority over name
+	for (auto field: {&BRDPin::snum, &BRDPin::name})
+	{
+		result.digits_value_combined *= 0x10000;
+		const char* pin_field = pin.*field;
+		if (pin_field != nullptr) {
+			int non_digit_prefix = 0;
+			for (;;) {
+				char next = pin_field[non_digit_prefix];
+				if (next == '\0' || (next >= '0' && next <= '9')) {
+					break;
+				}
+				++non_digit_prefix;
 			}
-			++result.non_digit_prefix_len;
+			result.digits_value_combined += strtod(pin_field + non_digit_prefix, nullptr);
+			if (non_digit_prefix && result.non_digit_prefix_member == nullptr) {
+				result.non_digit_prefix_len = non_digit_prefix;
+				result.non_digit_prefix_member = field;
+			}
 		}
-		result.digits_value = strtod(pin.name + result.non_digit_prefix_len, nullptr);
 	}
 	return result;
 }
@@ -99,32 +111,24 @@ bool BRDPin::LessByPartAndNumberAndName::operator()(const BRDPin &a, const BRDPi
 	if (a.part != b.part) {
 		return a.part < b.part;
 	}
-	// for equal parts compare pin number
-	if (a.snum != nullptr && b.snum != nullptr) {
-		int anum = strtod(a.snum, nullptr);
-		int bnum = strtod(b.snum, nullptr);
-		if (anum != bnum) {
-			return anum < bnum;
-		}
-	}
 	// for equal parts and numbers compare pin name, supporting strings like AA51. The order is like:
 	// A0 A1..A9 A10 A11..A99 A100 A101..B0..Z0..AA0..AZ0..BA0..
-	PinNameParseInfo a_name = pin_name_parse(a);
-	PinNameParseInfo b_name = pin_name_parse(b);
+	PinNameParseInfo a_parsed = pin_name_parse(a);
+	PinNameParseInfo b_parsed = pin_name_parse(b);
 
 	// compare non-digit prefixes lengths
-	if (a_name.non_digit_prefix_len != b_name.non_digit_prefix_len) {
-		return a_name.non_digit_prefix_len < b_name.non_digit_prefix_len;
+	if (a_parsed.non_digit_prefix_len != b_parsed.non_digit_prefix_len) {
+		return a_parsed.non_digit_prefix_len < b_parsed.non_digit_prefix_len;
 	}
 
 	// compare non-digit prefixes of equal length if non-empty
-	if (a_name.non_digit_prefix_len > 0) {
-		int prefix_cmp_result = memcmp(a.name, b.name, a_name.non_digit_prefix_len);
+	if (a_parsed.non_digit_prefix_len > 0) {
+		int prefix_cmp_result = memcmp(a.*a_parsed.non_digit_prefix_member, b.*b_parsed.non_digit_prefix_member, a_parsed.non_digit_prefix_len);
 		if (prefix_cmp_result != 0) {
 			return prefix_cmp_result < 0;
 		}
 	}
-	return a_name.digits_value < b_name.digits_value;
+	return a_parsed.digits_value_combined < b_parsed.digits_value_combined;
 }
 
 void BRDFileBase::AddNailsAsPins() {
