@@ -2413,9 +2413,9 @@ inline void BoardView::DrawPins(ImDrawList *draw) {
 				ImFont *font = ImGui::GetIO().Fonts->Fonts[0]; // Default font
 				ImVec2 text_size_normalized = font->CalcTextSizeA(1.0f, FLT_MAX, 0.0f, text.c_str());
 
-				float maxfontwidth = psz * 2.125/ text_size_normalized.x; // Fit horizontally with 6.75% overflow (should still avoid colliding with neighbours)
+				float maxfontwidth = psz * 9.125/ text_size_normalized.x; // Fit horizontally with 6.75% overflow (should still avoid colliding with neighbours)
 				maxfontwidth = std::min(Fonts::MAX_FONT_SIZE, maxfontwidth); // Clamp to try not to overflow texture size
-				float maxfontheight = psz * 1.5/ text_size_normalized.y; // Fit vertically with 25% top/bottom padding
+				float maxfontheight = psz * 5.5/ text_size_normalized.y; // Fit vertically with 25% top/bottom padding
 				maxfontheight = std::min(Fonts::MAX_FONT_SIZE, maxfontheight); // Clamp to try not to overflow texture size
 				float maxfontsize = std::min(maxfontwidth, maxfontheight);
 
