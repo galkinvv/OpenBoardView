@@ -16,20 +16,10 @@ const std::string BRDBoard::kComponentDummyName   = "...";
 BRDBoard::BRDBoard(const BRDFileBase * const boardFile)
     : m_file(boardFile) {
 	// TODO: strip / trim all strings, especially those used as keys
-	// TODO: just loop through original arrays?
-	std::vector<BRDPart> m_parts(m_file->num_parts);
-	std::vector<BRDPin> m_pins(m_file->num_pins);
-	std::vector<BRDNail> m_nails(m_file->num_nails);
-	std::vector<BRDPoint> m_points(m_file->num_format);
-
-	m_parts  = m_file->parts;
-	m_pins   = m_file->pins;
-	m_nails  = m_file->nails;
-	m_points = m_file->format;
 
 	// Set outline
 	{
-		for (auto &brdPoint : m_points) {
+		for (auto &brdPoint : m_file->format) {
 			auto point = std::make_shared<Point>(brdPoint.x, brdPoint.y);
 			outline_points_.push_back(point);
 		}
@@ -50,7 +40,7 @@ BRDBoard::BRDBoard(const BRDFileBase * const boardFile)
 		net_map[net_nc->name] = net_nc;
 
 		// handle all the others
-		for (auto &brd_nail : m_nails) {
+		for (auto &brd_nail : m_file->nails) {
 			auto net = std::make_shared<Net>();
 
 			// copy NET name and number (probe)
@@ -74,7 +64,7 @@ BRDBoard::BRDBoard(const BRDFileBase * const boardFile)
 
 	// Populate parts
 	{
-		for (auto &brd_part : m_parts) {
+		for (auto &brd_part : m_file->parts) {
 			auto comp = std::make_shared<Component>();
 
 			comp->name    = std::string(brd_part.name);
@@ -111,8 +101,7 @@ BRDBoard::BRDBoard(const BRDFileBase * const boardFile)
 		// NOTE: originally the pin diameter depended on part.name[0] == 'U' ?
 		unsigned int pin_idx  = 0;
 		unsigned int part_idx = 1;
-		auto pins             = m_pins;
-		auto parts            = m_parts;
+		auto pins             = m_file->pins;
 
 		for (size_t i = 0; i < pins.size(); i++) {
 			// (originally from BoardView::DrawPins)
