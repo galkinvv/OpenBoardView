@@ -96,7 +96,6 @@ BDVFile::BDVFile(std::vector<char> &buf) {
 						part.mounting_side = BRDPartMountingSide::Top; // SMD part on top
 					else
 						part.mounting_side = BRDPartMountingSide::Bottom; // SMD part on bottom
-					part.end_of_pins       = 0;
 					parts.push_back(part);
 				} else {
 					BRDPin pin;
@@ -117,7 +116,6 @@ BDVFile::BDVFile(std::vector<char> &buf) {
 						case BRDPartMountingSide::Both:   pin.side = BRDPinSide::Both;   break;
 					}
 					pins.push_back(pin);
-					parts.back().end_of_pins = pins.size();
 				}
 			} break;
 			case 3: { // Nails
@@ -142,11 +140,6 @@ BDVFile::BDVFile(std::vector<char> &buf) {
 			} break;
 		}
 	}
-
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
 
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 

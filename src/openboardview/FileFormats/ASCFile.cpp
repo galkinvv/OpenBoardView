@@ -43,7 +43,6 @@ void ASCFile::parse_pin(char *&p, char *&s, char *&arena, char *&arena_end, line
 			part.mounting_side = BRDPartMountingSide::Top; // SMD part on top
 		else
 			part.mounting_side = BRDPartMountingSide::Bottom; // SMD part on bottom
-		part.end_of_pins       = 0;
 		parts.push_back(part);
 	} else {
 		BRDPin pin;
@@ -64,7 +63,6 @@ void ASCFile::parse_pin(char *&p, char *&s, char *&arena, char *&arena_end, line
 			case BRDPartMountingSide::Both:   pin.side = BRDPinSide::Both;   break;
 		}
 		pins.push_back(pin);
-		parts.back().end_of_pins = pins.size();
 	}
 }
 
@@ -135,16 +133,6 @@ bool ASCFile::read_asc(const filesystem::path &filepath, void (ASCFile::*parser)
 	return true;
 }
 
-/*
- * Updates element counts
- */
-void ASCFile::update_counts() {
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
-}
-
 bool ASCFile::load_and_parse(const filesystem::path &path, const std::string &filename, void (ASCFile::*parser)(char *&, char *&, char *&, char *&, line_iterator_t&)) {
 	auto filepath = lookup_file_insensitive(path, filename, error_msg);
 	if (filepath.empty() || !error_msg.empty()) {
@@ -176,6 +164,5 @@ ASCFile::ASCFile(std::vector<char> &buf, const filesystem::path &filepath) {
 		valid = true;
 	}
 
-	update_counts();
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 }

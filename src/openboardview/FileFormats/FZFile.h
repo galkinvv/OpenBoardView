@@ -87,5 +87,4 @@ private:
 	static char *split(char *file_buf, size_t buffer_size, size_t &content_size, char *&descr, size_t &descr_size);
 	static char *decompress(char *file_buf, size_t buffer_size, size_t &output_size);
 	void gen_outline();
-	void update_counts();
 };

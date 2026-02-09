@@ -96,7 +96,6 @@ bool GenCADFile::parse_file(const std::vector<char> &buf) {
 				part.name = "...";
 				part.mounting_side =
 				    (i == 1 ? BRDPartMountingSide::Bottom : BRDPartMountingSide::Top); // First part is bottom, last is top.
-				part.end_of_pins = 0;                                                  // Unused
 				parts.push_back(part);
 			}
 
@@ -151,7 +150,6 @@ bool GenCADFile::parse_route_vias(mpc_ast_t *route_ast) {
 					nail.probe = 1; // WTF
 					x_y_ref_to_brd_point(pos_ast, &nail.pos);
 					nails.push_back(nail);
-					num_nails++;
 				}
 			}
 			i++;
@@ -227,12 +225,10 @@ bool GenCADFile::parse_components() {
 						if ( brd_part.part_type == BRDPartType::ThroughHole ) {
 							brd_part.mounting_side = BRDPartMountingSide::Both;
 						}
-						brd_part.end_of_pins = num_pins - 1;
 					}
 				}
 			}
 			parts.push_back(brd_part);
-			num_parts++;
 			i++;
 		}
 	}
@@ -310,7 +306,6 @@ bool GenCADFile::parse_shape_pins_to_component(
 					}
 
 					pins.push_back(pin);
-					num_pins++;
 				}
 			}
 			i++;

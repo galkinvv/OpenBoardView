@@ -28,7 +28,6 @@ class ASCFile : public BRDFileBase {
 	void parse_nail(char *&p, char *&s, char *&arena, char *&arena_end, line_iterator_t &line_it);
 	bool read_asc(const filesystem::path &filepath, void (ASCFile::*parser)(char *&, char *&, char *&, char *&, line_iterator_t&));
 	bool load_and_parse(const filesystem::path &path, const std::string &filename, void (ASCFile::*parser)(char *&, char *&, char *&, char *&, line_iterator_t&));
-	void update_counts();
 
   protected:
 	bool m_firstformat = true;

@@ -8,8 +8,5 @@ class CSTFile : public BRDFileBase {
 
   private:
 	void gen_outline();
-	void update_counts();
-
-	unsigned int num_nets = 0;
 	std::vector<char *> nets;
 };

@@ -14,7 +14,12 @@ bool BRD2File::verifyFormat(std::vector<char> &buf) {
 BRD2File::BRD2File(std::vector<char> &buf) {
 	auto buffer_size = buf.size();
 	std::unordered_map<int, char *> nets; // Map between net id and net name
+	unsigned int num_format = 0;
 	unsigned int num_nets = 0;
+	unsigned int num_parts = 0;
+	unsigned int num_pins = 0;
+	unsigned int num_nails = 0;
+
 	BRDPoint max{0, 0}; // Top-right board boundary
 
 	ENSURE_OR_FAIL(buffer_size > 4, error_msg, return);
@@ -100,7 +105,7 @@ BRD2File::BRD2File(std::vector<char> &buf) {
 				part.p1.y        = READ_INT();
 				part.p2.x        = READ_INT();
 				part.p2.y        = READ_INT();
-				part.end_of_pins = READ_UINT(); // Warning: not end but beginning in this format
+				part.format_specific_data = READ_UINT(); // beginning of pins in this format
 				part.part_type   = BRDPartType::SMD;
 				int side         = READ_UINT();
 				if (side == 1)
@@ -195,7 +200,7 @@ BRD2File::BRD2File(std::vector<char> &buf) {
 			if (i == parts.size() - 1) {
 				pei = pins.size();
 			} else {
-				pei = parts[i + 1].end_of_pins; // Again, not end of pins but beginning
+				pei = parts[i + 1].format_specific_data; // beginning of next part pins
 			}
 
 			while (cpi < pei) {
@@ -224,7 +229,6 @@ BRD2File::BRD2File(std::vector<char> &buf) {
 		part.name = "...";
 		part.mounting_side =
 		    (i == 1 ? BRDPartMountingSide::Bottom : BRDPartMountingSide::Top); // First part is bottom, last is top.
-		part.end_of_pins = 0;                                                  // Unused
 		parts.push_back(part);
 	}
 

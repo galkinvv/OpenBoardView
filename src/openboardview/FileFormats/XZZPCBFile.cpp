@@ -188,11 +188,6 @@ XZZPCBFile::XZZPCBFile(std::vector<char> &buf, uint64_t xzzkey) {
 	translate_pins(xy_translation);
 
 	valid = true;
-
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
 }
 
 void XZZPCBFile::process_block(std::vector<char> &block_buf, uint8_t block_type) {
@@ -418,7 +413,6 @@ void XZZPCBFile::parse_part_block(std::vector<char> &encrypted_buf) {
 		}
 	}
 
-	part.end_of_pins = pins.size();
 	parts.push_back(part);
 }
 
@@ -470,7 +464,6 @@ void XZZPCBFile::parse_test_pad_block(const std::vector<char> &buf) {
 	}
 	pin.part = parts.size() + 1;
 	pins.push_back(pin);
-	part.end_of_pins = pins.size();
 	parts.push_back(part);
 }
 

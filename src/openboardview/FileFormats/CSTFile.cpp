@@ -29,16 +29,6 @@ void CSTFile::gen_outline() {
 }
 #undef OUTLINE_MARGIN
 
-/*
- * Updates element counts
- */
-void CSTFile::update_counts() {
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
-}
-
 short read_short(char *&p) {
 	short s = *(reinterpret_cast<short *>(p));
 	p += 2;
@@ -76,7 +66,7 @@ CSTFile::CSTFile(std::vector<char> &buf) {
 	short string_length;
 	char *p = file_buf; // Not quite C++ but it's easier to work with a raw pointer here
 
-	num_parts = read_short(p);
+	unsigned int num_parts = read_short(p);
 	p += 4;                        // New section signature
 	string_length = read_short(p); // Section name length
 	read_string(p, string_length); // Section name
@@ -100,14 +90,13 @@ CSTFile::CSTFile(std::vector<char> &buf) {
 			part.mounting_side = BRDPartMountingSide::Bottom;
 		}
 
-		part.end_of_pins = 0;
 		parts.push_back(part);
 
 		p += 6; // unknown
 	}
 
 	p -= 2; // begining of nets list
-	num_nets = read_short(p);
+	unsigned int num_nets = read_short(p);
 	for (unsigned int i = 0; i < num_nets; i++) {
 		string_length = read_byte(p);                   // Net name length
 		p[-1]         = '\0';                           // Convert previous name to C-string
@@ -121,13 +110,12 @@ CSTFile::CSTFile(std::vector<char> &buf) {
 	part.name          = "...";
 	part.mounting_side = BRDPartMountingSide::Both; // FIXME: Both sides?
 	part.part_type     = BRDPartType::ThroughHole;
-	part.end_of_pins   = 0; // Unused
 	parts.push_back(part);
 
 	while (strncmp(p, "CPad", 4)) p++; // Search for the CPad section
 	p -= 8;                            // Go back to begining of section header
 
-	num_pins = read_short(p);
+	unsigned int num_pins = read_short(p);
 	p += 10; // Skip past section header
 
 	for (unsigned int i = 0; i < num_pins; i++) {
@@ -160,8 +148,6 @@ CSTFile::CSTFile(std::vector<char> &buf) {
 	}
 
 	gen_outline(); // We haven't figured out how to get the outline yet
-
-	update_counts(); // FIXME: useless?
 
 	valid = true; // FIXME: better way to ensure that?
 }

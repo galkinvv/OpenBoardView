@@ -478,16 +478,10 @@ ADFile::ADFile(std::vector<char> &buf) {
 				pins.push_back(pin);
 			} // if part ID and pad.part ID are the same
 		}
-		part.end_of_pins = pins.size();
 		parts.push_back(part);
 	}
 
 	std::sort(pins.begin(), pins.end(), customLess);
-
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
 
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 

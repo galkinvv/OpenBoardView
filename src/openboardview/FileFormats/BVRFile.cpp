@@ -100,7 +100,6 @@ BVRFile::BVRFile(std::vector<char> &buf) {
 
 				// If this is the first time we've seen this part
 				if ((strcmp(ppn, part.name))) {
-					part.end_of_pins = 0;
 					parts.push_back(part);
 					snprintf(ppn, sizeof(ppn), "%s", part.name);
 				}
@@ -123,7 +122,6 @@ BVRFile::BVRFile(std::vector<char> &buf) {
 				}
 				//
 				pins.push_back(pin);
-				parts.back().end_of_pins = pins.size();
 			} break;
 
 			case 3: { // Nails
@@ -154,11 +152,6 @@ BVRFile::BVRFile(std::vector<char> &buf) {
 			default: continue;
 		}
 	}
-
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
 
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 

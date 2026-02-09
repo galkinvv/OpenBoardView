@@ -85,6 +85,10 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 		char *p = line;
 		char *s;
 		unsigned int tmp = 0;
+		unsigned int num_format = 0;
+		unsigned int num_parts = 0;
+		unsigned int num_pins = 0;
+		unsigned int num_nails = 0;
 
 		switch (current_block) {
 			case 2: { // var_data
@@ -108,8 +112,8 @@ BRDFile::BRDFile(std::vector<char> &buf) {
 				part.part_type = (tmp & 0xc) ? BRDPartType::SMD : BRDPartType::ThroughHole;
 				if (tmp == 1 || (4 <= tmp && tmp < 8)) part.mounting_side = BRDPartMountingSide::Top;
 				if (tmp == 2 || (8 <= tmp)) part.mounting_side            = BRDPartMountingSide::Bottom;
-				part.end_of_pins                                          = READ_UINT();
-				ENSURE(part.end_of_pins <= num_pins, error_msg);
+				unsigned int check_end_of_pins = READ_UINT();
+				ENSURE(check_end_of_pins <= num_pins, error_msg);
 				parts.push_back(part);
 			} break;
 			case 5: { // Pins

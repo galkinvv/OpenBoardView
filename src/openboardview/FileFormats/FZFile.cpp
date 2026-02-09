@@ -205,16 +205,6 @@ void FZFile::gen_outline() {
 }
 #undef OUTLINE_MARGIN
 
-/*
- * Updates element counts
- */
-void FZFile::update_counts() {
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
-}
-
 void FZFile::parse(std::vector<char> &buf, const std::array<uint32_t, 44> &fzkey) {
 	auto buffer_size = buf.size();
 	char *saved_locale;
@@ -362,7 +352,6 @@ void FZFile::parse(std::vector<char> &buf, const std::array<uint32_t, 44> &fzkey
 					part.mounting_side = BRDPartMountingSide::Top; // SMD part on top
 				else
 					part.mounting_side = BRDPartMountingSide::Bottom; // SMD part on bottom
-				part.end_of_pins       = 0;
 				parts.push_back(part);
 				parts_id[part.name] = parts.size();
 			} break;
@@ -468,15 +457,7 @@ void FZFile::parse(std::vector<char> &buf, const std::array<uint32_t, 44> &fzkey
 		}
 	}
 
-	//	std::sort(pins.begin(), pins.end()); // sort vector by part num then pin num
-	for (std::vector<int>::size_type i = 0; i < pins.size(); i++) {
-		// update end_of_pins field
-		if (pins[i].part > 0) parts[pins[i].part - 1].end_of_pins = i;
-	}
-
 	gen_outline();
-
-	update_counts();
 
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 

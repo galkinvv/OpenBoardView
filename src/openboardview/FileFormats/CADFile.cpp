@@ -94,7 +94,6 @@ CADFile::CADFile(std::vector<char> &buf) {
 					part.mounting_side = BRDPartMountingSide::Top; // SMD part on top
 				else
 					part.mounting_side = BRDPartMountingSide::Bottom; // SMD part on bottom
-				part.end_of_pins       = 0;
 				parts.push_back(part);
 				parts_id[part.name] = parts.size();
 			} break;
@@ -154,10 +153,6 @@ CADFile::CADFile(std::vector<char> &buf) {
 		}
 	}
 	gen_outline();
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
 
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 

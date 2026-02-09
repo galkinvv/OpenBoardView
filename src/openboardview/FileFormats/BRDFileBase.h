@@ -55,7 +55,7 @@ struct BRDPart {
 	std::string mfgcode;
 	BRDPartMountingSide mounting_side{};
 	BRDPartType part_type{}; // SMD or TH
-	unsigned int end_of_pins = 0;
+	unsigned int format_specific_data = 0; //used to store part-related during parsing process, ignored after parsing done
 	BRDPoint p1{0, 0};
 	BRDPoint p2{0, 0};
 };
@@ -87,10 +87,6 @@ struct BRDNail {
 
 class BRDFileBase {
   public:
-	unsigned int num_format = 0;
-	unsigned int num_parts  = 0;
-	unsigned int num_pins   = 0;
-	unsigned int num_nails  = 0;
 
 	std::vector<BRDPoint> format;
 	std::vector<std::pair<BRDPoint, BRDPoint>> outline_segments;

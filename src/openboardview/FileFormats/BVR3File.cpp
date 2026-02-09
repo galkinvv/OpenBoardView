@@ -116,7 +116,6 @@ BVR3File::BVR3File(std::vector<char> &buf) {
 			pins.push_back(pin);
 			pin = blank_pin;
 		} else if (!strcmp(line, "PART_END")) {
-			part.end_of_pins = pins.size();
 			parts.push_back(part);
 			part = {};
 		} else if (!strncmp(line, "OUTLINE_POINTS ", 15)) {
@@ -227,12 +226,7 @@ BVR3File::BVR3File(std::vector<char> &buf) {
 		}
 	}
 
-	num_parts  = parts.size();
-	num_pins   = pins.size();
-	num_format = format.size();
-	num_nails  = nails.size();
-
 	setlocale(LC_NUMERIC, saved_locale); // Restore locale
 
-	valid = num_parts > 0 || num_format > 0;
+	valid = parts.size() > 0 || format.size() > 0;
 }
