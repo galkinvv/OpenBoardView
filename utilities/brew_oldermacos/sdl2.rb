@@ -19,9 +19,11 @@ class Sdl2 < Formula
     system "./autogen.sh" if build.head?
 
     args = %W[--prefix=#{prefix} --enable-hidapi]
-    args += if OS.mac?
-      %w[--without-x]
+    if OS.mac?
+        args += %w[--without-x]
     end
+    # pass -march=x86-64 to make the binary compatible with any x86_64 hardware, including the first Merom-based intel
+    ENV["HOMEBREW_ARCHFLAGS"]="-march=x86-64"
     ENV["MACOSX_DEPLOYMENT_TARGET"] = "10.9"
     system "./configure", *args
     system "make", "install"
